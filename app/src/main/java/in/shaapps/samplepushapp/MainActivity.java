@@ -1,5 +1,6 @@
 package in.shaapps.samplepushapp;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -8,11 +9,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.pushbots.push.Pushbots;
 
 public class MainActivity extends AppCompatActivity {
+
+    private WebView webView;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +26,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Pushbots.sharedInstance().init(this);
         Pushbots.sharedInstance().setCustomHandler(CustomHandler.class);
-        WebView webView = (WebView) findViewById(R.id.webview);
+        webView = (WebView) findViewById(R.id.webview);
+
+        progressDialog = ProgressDialog.show(this, "Please Wait", "Loading");
         if (hasNetworkConnection()) {
             webView.setWebViewClient(new MyBrowser());
             webView.getSettings().setLoadsImagesAutomatically(true);
@@ -29,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
             webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
             // TODO: Replace the following url
             webView.loadUrl("http://www.shaapps.in/");
+            webView.goBack();
         } else
             Toast.makeText(MainActivity.this, "No internet connection", Toast.LENGTH_SHORT).show();
     }
@@ -38,6 +46,22 @@ public class MainActivity extends AppCompatActivity {
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             view.loadUrl(url);
             return true;
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+
+            progressDialog.cancel();
+            super.onPageFinished(view, url);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(webView.canGoBack()) {
+            webView.goBack();
+        } else {
+            super.onBackPressed();
         }
     }
 
